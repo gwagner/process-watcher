@@ -1,0 +1,7 @@
+---
+commands:
+  - name: FFMPEG Video Loopback
+    cmd: "ffmpeg -f v4l2 -framerate 60 -video_size 1920x1080 -input_format mjpeg -i /dev/video0 -f v4l2 -pix_fmt yuv420p -video_size 1920x1080 -vcodec rawvideo /dev/video11"
+  - name: OBS Virtual Webcam
+    cmd: "obs --startvirtualcam"
+    sleep: 1
