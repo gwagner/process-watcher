@@ -5,3 +5,4 @@ commands:
   - name: OBS Virtual Webcam
     cmd: "obs --startvirtualcam"
     sleep: 1
+    showLog: true

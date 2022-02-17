@@ -57,7 +57,7 @@ func CommandKeepalive(ctx context.Context, command Command) error {
 	}
 
 	log.Printf("Spinning up process watcher for: %s", command.Name)
-	cmd, err := RunnCommand(command)
+	cmd, err := RunCommand(command)
 	if err != nil {
 		return fmt.Errorf("error trying to run process %s: %s", command.Name, err.Error())
 	}
@@ -78,7 +78,7 @@ func CommandKeepalive(ctx context.Context, command Command) error {
 		case <-waitChan:
 			if cmd.ProcessState != nil && cmd.ProcessState.Exited() {
 				log.Printf("Trying to rerun process: %s\n", command.Name)
-				cmd, err = RunnCommand(command)
+				cmd, err = RunCommand(command)
 				if err != nil {
 					return fmt.Errorf("error trying to rerun process %s: %s", command.Name, err.Error())
 				}
@@ -87,8 +87,12 @@ func CommandKeepalive(ctx context.Context, command Command) error {
 	}
 }
 
-func RunnCommand(command Command) (*exec.Cmd, error) {
+func RunCommand(command Command) (*exec.Cmd, error) {
 	cmd := exec.Command("/bin/sh", "-c", command.Cmd)
+	if command.ShowLog {
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+	}
 	return cmd, cmd.Start()
 }
 
