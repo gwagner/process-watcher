@@ -9,4 +9,5 @@ type Command struct {
 	Cmd          string `yaml:"cmd"`
 	SleepSeconds int    `yaml:"sleep,omitempty"`
 	ShowLog      bool   `yaml:"showLog,omitempty"`
+	RetrySec     int    `yaml:retrySec,omitempty`
 }

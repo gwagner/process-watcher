@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"io"
 	"log"
 	"os"
@@ -13,6 +12,8 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"gopkg.in/yaml.v2"
 )
 
 var config *Config
@@ -64,7 +65,9 @@ func CommandKeepalive(ctx context.Context, command Command) error {
 
 	waitChan := make(chan error)
 	go func() {
-		waitChan <- cmd.Wait()
+		for {
+			waitChan <- cmd.Wait()
+		}
 	}()
 
 	for {
@@ -78,6 +81,12 @@ func CommandKeepalive(ctx context.Context, command Command) error {
 		case <-waitChan:
 			if cmd.ProcessState != nil && cmd.ProcessState.Exited() {
 				log.Printf("Trying to rerun process: %s\n", command.Name)
+
+				if command.RetrySec > 0 {
+					log.Printf("Sleeping for %d seconds before retry", command.RetrySec)
+					time.Sleep(time.Duration(command.RetrySec) * time.Second)
+				}
+
 				cmd, err = RunCommand(command)
 				if err != nil {
 					return fmt.Errorf("error trying to rerun process %s: %s", command.Name, err.Error())
@@ -111,6 +120,14 @@ func LoadConfig(configPath string) error {
 
 	if err := yaml.Unmarshal(d, &config); err != nil {
 		return err
+	}
+
+	for i, v := range config.Commands {
+		if v.RetrySec == 0 {
+			v.RetrySec = 10
+		}
+
+		config.Commands[i] = v
 	}
 
 	return nil
